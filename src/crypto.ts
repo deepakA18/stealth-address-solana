@@ -10,10 +10,8 @@
  * This gives us Fluidkey-style stealth addresses on Solana without any smart contracts.
  */
 
-import { ed25519 } from '@noble/curves/ed25519';
-import { x25519 } from '@noble/curves/ed25519';
-import { sha256 } from '@noble/hashes/sha256';
-import { sha512 } from '@noble/hashes/sha512';
+import { ed25519, x25519 } from '@noble/curves/ed25519';
+import { sha256, sha512 } from '@noble/hashes/sha2';
 import { Keypair, PublicKey } from '@solana/web3.js';
 
 // Ed25519 curve order (for scalar arithmetic modulo L)
@@ -243,10 +241,10 @@ export function computeStealthAddressInternal(metaAddress: StealthMetaAddress): 
   const tweakScalar = bytesToBigInt(tweak) % L;
   
   // 6. Compute tweak * B (basepoint multiplication)
-  const tweakPoint = ed25519.ExtendedPoint.BASE.multiply(tweakScalar);
+  const tweakPoint = ed25519.Point.BASE.multiply(tweakScalar);
   
   // 7. Parse spending pubkey as point and add tweak
-  const spendingPoint = ed25519.ExtendedPoint.fromHex(metaAddress.spendingPubkey);
+  const spendingPoint = ed25519.Point.fromHex(metaAddress.spendingPubkey);
   const stealthPoint = spendingPoint.add(tweakPoint);
   const stealthPubkeyBytes = stealthPoint.toRawBytes();
   
@@ -329,8 +327,8 @@ export function computeExpectedStealthAddress(
   const tweak = sha256(sharedSecret);
   const tweakScalar = bytesToBigInt(tweak) % L;
   
-  const tweakPoint = ed25519.ExtendedPoint.BASE.multiply(tweakScalar);
-  const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingPubkey);
+  const tweakPoint = ed25519.Point.BASE.multiply(tweakScalar);
+  const spendingPoint = ed25519.Point.fromHex(spendingPubkey);
   const stealthPoint = spendingPoint.add(tweakPoint);
   
   return new PublicKey(stealthPoint.toRawBytes());
